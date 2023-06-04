@@ -1,6 +1,7 @@
 from django.urls import path
 from djoser.views import UserViewSet
-from .views import MyAuthToken, Logout
+
+from .views import LogoutToken, MyAuthToken
 
 urlpatterns = [
     path('',
@@ -10,5 +11,5 @@ urlpatterns = [
          UserViewSet.as_view({"post": "set_password"}),
          name="set-password"),
     path('token/login/', MyAuthToken.as_view(), name='login'),
-    path('token/logout/', Logout.as_view(), name='logout')
+    path('token/logout/', LogoutToken.as_view(), name='logout')
 ]
