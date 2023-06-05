@@ -23,7 +23,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework_simplejwt.token_blacklist',
+    'django_extensions',
     'rest_framework',
     'rest_framework.authtoken',
     'djoser',
@@ -99,7 +99,9 @@ REST_FRAMEWORK = {
 
 DJOSER = {
     'SERIALIZERS': {
-        'user_create': 'users.serializers.CustomUserCreateSerializer'
+        'user_create': 'users.serializers.CustomUserCreateSerializer',
+        'user': 'users.serializers.CustomUserSerializer',
+        'current_user': 'users.serializers.CustomUserSerializer',
     }
 }
 

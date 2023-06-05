@@ -1,5 +1,5 @@
-from django.urls import reverse
 from rest_framework import status
+from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
 from users.models import User
 
@@ -7,11 +7,16 @@ FIRST_ENDPOINT_ERROR = 0
 
 
 class UserTest(APITestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        cls.url = reverse('routers:api-root')
+
     def test_create_account(self):
         """
         Проверяем возможность создания пользователя с корректными данными.
         """
-        url = reverse('register')
+        url = UserTest.url
         data = {'email': 'testemail@test.com',
                 'username': 'testuser',
                 'first_name': 'first_test',
@@ -42,7 +47,7 @@ class UserTest(APITestCase):
         """
         Провеярем наличие ошибки при использовании невалидных длинных значений.
         """
-        url = reverse('register')
+        url = UserTest.url
         data = {'email': f'{"a"*245}@test.test',
                 'username': 'a'*151,
                 'first_name': 'a'*151,
@@ -69,7 +74,7 @@ class UserTest(APITestCase):
         """
         Проверяем отсутствие возможности создать два одиноковых аккаунтов.
         """
-        url = reverse('register')
+        url = UserTest.url
         data = {'email': 'testemail@test.com',
                 'username': 'testuser',
                 'first_name': 'first_test',

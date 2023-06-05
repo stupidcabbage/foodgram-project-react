@@ -1,9 +1,15 @@
 from django.contrib.auth import authenticate
 from django.utils.translation import gettext_lazy as _
-from djoser.serializers import UserCreateSerializer
+from djoser.serializers import UserCreateSerializer, UserSerializer
 from rest_framework import serializers
 
 from .models import User
+
+
+class CustomUserSerializer(UserSerializer):
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username', 'first_name', 'last_name')
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
