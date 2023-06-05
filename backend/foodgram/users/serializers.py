@@ -40,7 +40,7 @@ class CustomAuthTokenEmailSerializer(serializers.Serializer):
                                 email=email, password=password)
 
             if not user:
-                msg = _('Incorrect authentication credentials.')
+                msg = _('Authentication credentials were not provided.')
                 raise serializers.ValidationError(msg, code='authorization')
 
         attrs['user'] = user
