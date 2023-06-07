@@ -4,7 +4,13 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import NotAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import filters, mixins, viewsets, generics
+from rest_framework.permissions import AllowAny
 from users.serializers import CustomAuthTokenEmailSerializer
+from api.serializers import TagSerializer
+from django_filters.rest_framework import DjangoFilterBackend
+
+from food.models import Tag
 
 
 class MyAuthToken(ObtainAuthToken):
@@ -28,3 +34,9 @@ class LogoutToken(APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_401_UNAUTHORIZED,
                         data={'detail': NotAuthenticated.default_detail})
+
+
+class TagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = (AllowAny,)
