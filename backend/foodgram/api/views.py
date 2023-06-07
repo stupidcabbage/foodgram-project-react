@@ -8,11 +8,6 @@ from users.models import User
 from users.serializers import CustomAuthTokenEmailSerializer, UserSerializer
 
 
-class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
 class MyAuthToken(ObtainAuthToken):
     """Получение токена пользователем."""
     serializer_class = CustomAuthTokenEmailSerializer
