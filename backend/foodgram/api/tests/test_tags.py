@@ -15,35 +15,35 @@ class TagsTest(APITestCase):
         cls.tag = Tag.objects.create(
             name="Завтрак",
             colour="#8775fD2",
-            slug='breakfast'
+            slug="breakfast"
         )
-        cls.data = {'id': TagsTest.tag.id,
-                    'name': TagsTest.tag.name,
-                    'colour': TagsTest.tag.colour,
-                    'slug': TagsTest.tag.slug}
+        cls.data = {"id": TagsTest.tag.id,
+                    "name": TagsTest.tag.name,
+                    "colour": TagsTest.tag.colour,
+                    "slug": TagsTest.tag.slug}
 
     def test_get_list_tags(self):
         """
         Проверяем работу эндпойнта по получению списка тэгов.
         """
-        url = reverse('routers:tags-list')
+        url = reverse("routers:tags-list")
         response = self.client.get(url)
         self._assert_status_code_is_200(response.status_code)
-        self.assertEqual(response.data.get('count'), 1,
+        self.assertEqual(response.data.get("count"), 1,
                          "Проверьте, что у вас включена пагинация.")
         self._assert_serializer_is_correct(
-            response.data.get('results')[FIRST_TAG])
+            response.data.get("results")[FIRST_TAG])
 
     def test_get_tag_by_id(self):
         """
         Проверяем работу эндпойнта по получения тэга по ID.
         """
-        url = reverse('routers:tags-detail', args=[1])
+        url = reverse("routers:tags-detail", args=[1])
         response = self.client.get(url)
         self._assert_status_code_is_200(response.status_code)
         self._assert_serializer_is_correct(response.data)
 
-        url = reverse('routers:tags-detail', args=[2])
+        url = reverse("routers:tags-detail", args=[2])
         response = self.client.get(url)
         self.assertEqual(
             response.status_code,
@@ -52,7 +52,7 @@ class TagsTest(APITestCase):
             "HTTP_404_NOT_FOUND, если такого объекта не существует.")
         self._assert_data_exists(response.data)
         self.assertEqual(
-            response.data.get('detail'),
+            response.data.get("detail"),
             NotFound.default_detail,
             "Проверьте, что эндпойнт возвращает ошибку, " +
             "если такого объекта не существует")

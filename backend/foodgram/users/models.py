@@ -7,29 +7,29 @@ from django.db import models
 
 class User(AbstractUser):
     username = models.CharField(
-        'Псевдоним',
+        "Псевдоним",
         max_length=150,
         unique=True,
         validators=[
             RegexValidator(regex=re.compile(r"^[\w.@+-]+\Z"),
-                           message='Проверьте правильность написания никнейма')
+                           message="Проверьте правильность написания никнейма")
         ])
     last_name = models.CharField(
-        'Фамилия пользователя',
+        "Фамилия пользователя",
         max_length=150)
     first_name = models.CharField(
-        'Имя пользователя',
+        "Имя пользователя",
         max_length=150)
     email = models.EmailField(
-        'Электронная почта',
+        "Электронная почта",
         max_length=254,
         unique=True)
 
-    USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['username']
+    USERNAME_FIELD = "email"
+    REQUIRED_FIELDS = ["username"]
 
     class Meta:
-        ordering = ('-id',)
+        ordering = ("-id",)
 
     def __str__(self):
-        return f'{self.username}: {self.email}'
+        return f"{self.username}: {self.email}"

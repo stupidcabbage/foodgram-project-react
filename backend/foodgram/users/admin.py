@@ -6,4 +6,4 @@ from .models import User
 
 @admin.register(User)
 class UserAdmin(DjangoUserAdmin):
-    list_filter = ['email', 'username']
+    list_filter = ["email", "username"]

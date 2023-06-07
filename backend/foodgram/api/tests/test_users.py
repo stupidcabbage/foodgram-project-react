@@ -42,7 +42,7 @@ class UserTest(APITestCase):
                          "Проверьте, что у вас включена пагинация" +
                          "по страницам.")
         self._assert_serializer_is_correct(
-            response.data.get('results')[FIRST_RESULT])
+            response.data.get("results")[FIRST_RESULT])
 
     def test_get_user_by_id(self):
         """
@@ -69,7 +69,7 @@ class UserTest(APITestCase):
         """
         Проверяет энпойнт получения личного аккаунта.
         """
-        url = reverse('routers:user-me')
+        url = reverse("routers:user-me")
         response = self.client.get(url)
         self._assert_status_code_is_401(response.status_code)
 

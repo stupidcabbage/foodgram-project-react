@@ -5,4 +5,4 @@ from food.models import Tag
 class TagSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tag
-        fields = ('id', 'name', 'colour', 'slug')
+        fields = ("id", "name", "colour", "slug")
