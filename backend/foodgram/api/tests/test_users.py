@@ -38,7 +38,7 @@ class UserTest(APITestCase):
 
         response = self._authorize_client_and_get_response(url=url)
         self._assert_status_code_is_200(response.status_code)
-        self.assertEqual(response.data.get("next"), None,
+        self.assertEqual(response.data.get("count"), 1,
                          "Проверьте, что у вас включена пагинация" +
                          "по страницам.")
         self._assert_serializer_is_correct(
@@ -96,7 +96,13 @@ class UserTest(APITestCase):
 
     def _assert_serializer_is_correct(self, data):
         "Проверяет, что у эндпойнта корректно настроен serializer."
+        self._assert_data_exists(data)
         self.assertEqual(data,
                          UserTest.data,
                          "Проверьте, что у вас правильно настроен serializer" +
                          "для эндпойнта.")
+
+    def _assert_data_exists(self, data):
+        "Проверяет, что эндпойнт что-либо возвращает."
+        self.assertIsInstance(data, dict,
+                              "Проверьте, что эндпойнт что-либо возвращает.")

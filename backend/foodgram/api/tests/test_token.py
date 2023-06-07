@@ -101,6 +101,8 @@ class LogoutTokenTest(APITestCase):
                          status.HTTP_401_UNAUTHORIZED,
                          'Проверьте, что при передаче невалидных данных' +
                          ' эндпойнт возвращает статус HTTP_401_UNAUTHORIZED')
+        self.assertIsInstance(response.data, dict,
+                              "Проверьте, что эндпойнт что-либо возвращает.")
         self.assertEqual(
             response.data.get('detail'),
             _('Authentication credentials were not provided.'),

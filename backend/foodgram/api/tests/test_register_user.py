@@ -10,7 +10,7 @@ class UserRegisterTest(APITestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        cls.url = reverse('routers:api-root')
+        cls.url = reverse('routers:user-list')
 
     def test_create_account(self):
         """

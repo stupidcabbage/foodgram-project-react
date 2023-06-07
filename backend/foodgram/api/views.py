@@ -1,16 +1,17 @@
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.exceptions import NotAuthenticated
+from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import filters, mixins, viewsets, generics
+from rest_framework import mixins, viewsets
 from rest_framework.permissions import AllowAny
 from users.serializers import CustomAuthTokenEmailSerializer
 from api.serializers import TagSerializer
-from django_filters.rest_framework import DjangoFilterBackend
 
 from food.models import Tag
+
+FIRST_TAG = 0
 
 
 class MyAuthToken(ObtainAuthToken):
@@ -32,11 +33,17 @@ class LogoutToken(APIView):
         if not request.user.is_anonymous:
             request.user.auth_token.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_401_UNAUTHORIZED,
-                        data={'detail': NotAuthenticated.default_detail})
+        raise NotAuthenticated
 
 
 class TagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
+
+    def retrieve(self, request, *args, **kwargs):
+        queryset = Tag.objects.filter(pk=self.kwargs['pk'])
+        serializer = TagSerializer(queryset, many=True)
+        if serializer.data:
+            return Response(serializer.data[FIRST_TAG])
+        raise NotFound
