@@ -7,6 +7,7 @@ from rest_framework.exceptions import NotFound
 FIRST_TAG = 0
 FIRST_ENDPOINT_ERROR = 0
 
+
 class TagsTest(APITestCase):
     @classmethod
     def setUpClass(cls) -> None:
