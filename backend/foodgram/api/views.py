@@ -4,14 +4,14 @@ from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, viewsets, filters
 from rest_framework.permissions import AllowAny
 from users.serializers import CustomAuthTokenEmailSerializer
-from api.serializers import TagSerializer
+from api.serializers import TagSerializer, IngridientSerializer
 
-from food.models import Tag
+from food.models import Tag, Ingridient
 
-FIRST_TAG = 0
+FIRST_ELEM = 0
 
 
 class MyAuthToken(ObtainAuthToken):
@@ -45,5 +45,21 @@ class TagViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         queryset = Tag.objects.filter(pk=self.kwargs["pk"])
         serializer = TagSerializer(queryset, many=True)
         if serializer.data:
-            return Response(serializer.data[FIRST_TAG])
+            return Response(serializer.data[FIRST_ELEM])
+        raise NotFound
+
+
+class IngridientViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+    queryset = Ingridient.objects.all()
+    serializer_class = IngridientSerializer
+    permission_classes = (AllowAny,)
+    pagination_class = None
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['name']
+
+    def retrieve(self, request, *args, **kwargs):
+        queryset = Ingridient.objects.filter(pk=self.kwargs["pk"])
+        serializer = IngridientSerializer(queryset, many=True)
+        if serializer.data:
+            return Response(serializer.data[FIRST_ELEM])
         raise NotFound
