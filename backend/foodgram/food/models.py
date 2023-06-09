@@ -63,4 +63,17 @@ class Recipe(models.Model):
         verbose_name='Ингридиенты',
         to=Ingridient,
         related_name='ingridients')
-    tag = models.IntegerField()
+    tag = models.ManyToManyField(
+        verbose_name='Тэги',
+        to=Tag,
+        related_name='tags')
+    image = models.ImageField(
+        upload_to='food/images.',
+        null=True,
+        default=None)
+
+    class Meta:
+        ordering = ('-id',)
+
+    def __str__(self):
+        return f"{self.name} от {self.author}"
