@@ -223,20 +223,15 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Получение поля нахождения в избранном."""
         user = self.context.get('request').user
-        return self._is_favorite_or_shopping_cart_exists(user,
-                                                         Favourites, obj)
+        if user.is_authenticated:
+            return Favourites.objects.filter(recipe=obj, user=user).exists()
+        return False
 
     def get_is_in_shopping_cart(self, obj):
         """Получение поля нахождения в списке предметов."""
         user = self.context.get('request').user
-        return self._is_favorite_or_shopping_cart_exists(user,
-                                                         ShoppingCart, obj)
-
-    def _is_favorite_or_shopping_cart_exists(self, user, model, recipe):
-        """Проверяет существование у пользователя рецепта в списке предметов
-        или в списке избранного."""
         if user.is_authenticated:
-            return model.objects.filter(recipe=recipe, user=user).exists()
+            return ShoppingCart.objects.filter(recipe=obj, user=user).exists()
         return False
 
 
