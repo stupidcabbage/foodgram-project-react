@@ -1,11 +1,10 @@
-from api.serializers import (IngridientSerializer, RecipeReadSerializer,
-                             TagSerializer, FavouriteSerializer)
-from food.models import Ingridient, Recipe, Tag, Favourites
-from rest_framework import filters, mixins, viewsets, response, status
-from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import action
+from api.serializers import (FavouriteSerializer, IngridientSerializer,
+                             RecipeReadSerializer, TagSerializer)
 from django.shortcuts import get_object_or_404
+from food.models import Favourites, Ingridient, Recipe, Tag
+from rest_framework import filters, mixins, response, status, viewsets
+from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,

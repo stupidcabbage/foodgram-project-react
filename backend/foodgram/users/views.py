@@ -1,5 +1,6 @@
 from api.serializers import (CustomAuthTokenEmailSerializer,
                              CustomUserSerializer, FollowSerializer)
+from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -10,7 +11,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import Follow, User
-from django.shortcuts import get_object_or_404
 
 
 class MyAuthToken(ObtainAuthToken):
@@ -36,6 +36,7 @@ class LogoutToken(APIView):
 
 
 class CustomUserViewSet(UserViewSet):
+    """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
 
@@ -47,18 +48,12 @@ class CustomUserViewSet(UserViewSet):
         author = get_object_or_404(User, id=id)
 
         if request.method == 'POST':
-            serializer = FollowSerializer(author,
-                                          data=request.data,
-                                          context={"request": request})
-            serializer.is_valid(raise_exception=True)
+            serializer = self._validate_data(author, request)
             Follow.objects.create(user=user, author=author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            serializer = FollowSerializer(author,
-                                          data=request.data,
-                                          context={"request": request})
-            serializer.is_valid(raise_exception=True)
+            serializer = self._validate_data(author, request)
             Follow.objects.filter(user=user, author=author).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -72,3 +67,11 @@ class CustomUserViewSet(UserViewSet):
                                       many=True,
                                       context={'request': request})
         return self.get_paginated_response(serializer.data)
+
+    def _validate_data(self, author: User, request) -> FollowSerializer:
+        """Возвращает результат работы сериализера."""
+        serializer = FollowSerializer(author,
+                                      data=request.data,
+                                      context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        return serializer

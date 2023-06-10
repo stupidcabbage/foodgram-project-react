@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from food.models import Ingridient, Recipe, Tag, Favourites
+from food.models import Favourites, Ingridient, Recipe, Tag
 from rest_framework import serializers
 from users.models import Follow, User
 
@@ -155,17 +155,20 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         """Валидация полей подписок."""
-        user = self.context.get('request').user
+        request = self.context.get('request')
         author = self._args[0]
-        follow = Follow.objects.filter(user=user, author=author).exists()
-        if self.context.get('request').method == 'POST':
-            if user.id == author.id:
+        follow = Follow.objects.filter(
+            user=request.user, author=author).exists()
+
+        if request.method == 'POST':
+            if request.user.id == author.id:
                 raise serializers.ValidationError({
                     'error': 'Подписка на себя - запрещена.'})
             if follow:
                 raise serializers.ValidationError({
                     'error': 'Вы уже подписаны на данного пользователя.'})
-        else:
+
+        if request.method == 'DELETE':
             if not follow:
                 raise serializers.ValidationError({
                     "error": "Вы не подписаны."})
@@ -180,36 +183,38 @@ class FollowSerializer(serializers.ModelSerializer):
 
     def get_recipes(self, obj):
         """Получение поля рецепта."""
-        recipe = Recipe.objects.filter(
-            author=obj)
+        recipe = Recipe.objects.filter(author=obj)
         serializer = ShortRecipeSerializer(recipe, many=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
         """Получение поля recipes_count, отображающий кол-во рецептов,
         созданных пользователем."""
-        recipes_count = Recipe.objects.filter(
-            author=obj).count()
+        recipes_count = Recipe.objects.filter(author=obj).count()
         return recipes_count
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с избранным."""
+
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
-        read_only_fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = fields
 
     def validate(self, attrs):
-        user = self.context.get('request').user
-        recipe = self._args[0]
+        """Валидация полей для добавления в избранные."""
+        request = self.context.get('request')
+        recipe: Recipe = self._args[0]
         favourite = Favourites.objects.filter(
-            user=user, recipe=recipe).exists()
-        if self.context.get('request').method == 'POST':
+            user=request.user, recipe=recipe).exists()
+
+        if request.method == 'POST':
             if favourite:
                 raise serializers.ValidationError({
                     'error': 'Рецепт уже в избранном.'})
-        else:
+        if request.method == 'DELETE':
             if not favourite:
                 raise serializers.ValidationError({
-                    'error': 'У вас нет ничего в избранном!'})
+                    'error': 'У вас нет ничего в избранном.'})
         return attrs
