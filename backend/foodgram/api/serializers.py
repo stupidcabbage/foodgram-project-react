@@ -28,7 +28,16 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipeRedSerializer(serializers.ModelSerializer):
+class FollowRecipeSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=True)
+
+    class Meta:
+        model = Recipe
+        fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("id",)
+
+
+class RecipeReadSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=True)
     tag = TagSerializer(many=True)
     author = UserSerializer()

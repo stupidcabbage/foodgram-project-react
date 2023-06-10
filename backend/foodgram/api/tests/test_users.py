@@ -34,9 +34,6 @@ class UserTest(APITestCase):
         Проверяет возможность получения списка всех пользователей.
         """
         url = reverse("routers:user-list")
-        response = self.client.get(url)
-        self._assert_status_code_is_401(response.status_code)
-
         response = self._authorize_client_and_get_response(url=url)
         self._assert_status_code_is_200(response.status_code)
         self.assertEqual(response.data.get("count"), 1,

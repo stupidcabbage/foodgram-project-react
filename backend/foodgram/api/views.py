@@ -5,11 +5,14 @@ from rest_framework.exceptions import NotAuthenticated, NotFound
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import mixins, viewsets, filters
-from rest_framework.permissions import AllowAny
-from users.serializers import CustomAuthTokenEmailSerializer
-from api.serializers import TagSerializer, IngridientSerializer, RecipeRedSerializer
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from users.serializers import CustomAuthTokenEmailSerializer, FollowSerializer, CustomUserSerializer
+from api.serializers import TagSerializer, IngridientSerializer, RecipeReadSerializer
+from rest_framework.decorators import action
 
 from food.models import Tag, Ingridient, Recipe
+from users.models import User, Follow
+from djoser.views import UserViewSet
 
 FIRST_ELEM = 0
 
@@ -68,5 +71,38 @@ class IngridientViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
 class RecipeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
                     viewsets.GenericViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeRedSerializer
+    serializer_class = RecipeReadSerializer
     permission_classes = (AllowAny,)
+
+
+class CustomUserViewSet(UserViewSet):
+    queryset = User.objects.all()
+    serializer_class = CustomUserSerializer
+
+    @action(detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def subscribe(self, request, id):
+        user = request.user
+        queryset = User.objects.filter(pk=id)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(pages,
+                                      data=request.data,
+                                      many=True,
+                                      context={'request':  request})
+        if serializer.is_valid(raise_exception=True):
+            Follow.objects.get_or_create(user=user, author=queryset[0])
+            return Response(serializer.data,
+                            status=status.HTTP_201_CREATED)
+        return Response(serializer.errors)
+
+    @action(detail=False,
+            permission_classes=[IsAuthenticated])
+    def subscriptions(self, request):
+        user = request.user
+        queryset = User.objects.filter(subscriber__user=user)
+        pages = self.paginate_queryset(queryset)
+        serializer = FollowSerializer(pages,
+                                      many=True,
+                                      context={'request': request})
+        return self.get_paginated_response(serializer.data)
