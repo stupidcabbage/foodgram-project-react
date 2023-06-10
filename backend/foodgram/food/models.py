@@ -65,7 +65,7 @@ class Recipe(models.Model):
         max_length=200)
     text = models.TextField(
         'Описание')
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveIntegerField(
         'Время приготовления')
     ingridients = models.ManyToManyField(
         verbose_name='Ингридиенты',
@@ -93,7 +93,7 @@ class IngridientForRecipe(models.Model):
     """Ингридиент для рецепта."""
     ingridient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
-    amount = models.IntegerField()
+    amount = models.PositiveIntegerField()
 
     class Meta:
         verbose_name = 'Ингридиент для рецепта'
