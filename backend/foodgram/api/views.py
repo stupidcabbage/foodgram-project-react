@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework import mixins, viewsets, filters
 from rest_framework.permissions import AllowAny
 from users.serializers import CustomAuthTokenEmailSerializer
-from api.serializers import TagSerializer, IngridientSerializer, RecipeSerializer
+from api.serializers import TagSerializer, IngridientSerializer, RecipeRedSerializer
 
 from food.models import Tag, Ingridient, Recipe
 
@@ -65,7 +65,8 @@ class IngridientViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
         raise NotFound
 
 
-class RecipeViewSet(mixins.ListModelMixin, viewsets.GenericViewSet):
+class RecipeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin,
+                    viewsets.GenericViewSet):
     queryset = Recipe.objects.all()
-    serializer_class = RecipeSerializer
+    serializer_class = RecipeRedSerializer
     permission_classes = (AllowAny,)

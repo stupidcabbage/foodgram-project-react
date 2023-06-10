@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from food.models import Tag, Ingridient, Recipe, IngridientForRecipe
+from food.models import Tag, Ingridient, Recipe
 from django.core.files.base import ContentFile
 import base64
 from users.serializers import UserSerializer
@@ -28,8 +28,8 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=False, allow_null=True)
+class RecipeRedSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=True)
     tag = TagSerializer(many=True)
     author = UserSerializer()
     ingridients = serializers.SerializerMethodField()

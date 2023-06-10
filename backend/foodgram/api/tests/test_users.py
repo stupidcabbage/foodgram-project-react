@@ -25,7 +25,8 @@ class UserTest(APITestCase):
             "id": UserTest.user.id,
             "username": UserTest.user.username,
             "first_name": UserTest.user.first_name,
-            "last_name": UserTest.user.last_name
+            "last_name": UserTest.user.last_name,
+            "is_subscribed": False
         }
 
     def test_get_users_list(self):
@@ -99,7 +100,7 @@ class UserTest(APITestCase):
         self._assert_data_exists(data)
         self.assertEqual(data,
                          UserTest.data,
-                         "Проверьте, что у вас правильно настроен serializer" +
+                         "Проверьте, что у вас правильно настроен serializer " +
                          "для эндпойнта.")
 
     def _assert_data_exists(self, data):
