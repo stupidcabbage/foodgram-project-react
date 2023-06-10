@@ -5,10 +5,9 @@ from django.core.files.base import ContentFile
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from food.models import Ingridient, Recipe, Tag
+from food.models import Ingridient, Recipe, Tag, Favourites
 from rest_framework import serializers
 from users.models import Follow, User
-from rest_framework.response import Response
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -36,12 +35,13 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class FollowRecipeSerializer(serializers.ModelSerializer):
+class ShortRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с рецептами в отображении подписок."""
 
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("id", "name", "image", "cooking_time")
 
 
 class CustomUserSerializer(UserSerializer):
@@ -182,7 +182,7 @@ class FollowSerializer(serializers.ModelSerializer):
         """Получение поля рецепта."""
         recipe = Recipe.objects.filter(
             author=obj)
-        serializer = FollowRecipeSerializer(recipe, many=True)
+        serializer = ShortRecipeSerializer(recipe, many=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
@@ -191,3 +191,25 @@ class FollowSerializer(serializers.ModelSerializer):
         recipes_count = Recipe.objects.filter(
             author=obj).count()
         return recipes_count
+
+
+class FavouriteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Recipe
+        fields = ("id", "name", "image", "cooking_time")
+        read_only_fields = ("id", "name", "image", "cooking_time")
+
+    def validate(self, attrs):
+        user = self.context.get('request').user
+        recipe = self._args[0]
+        favourite = Favourites.objects.filter(
+            user=user, recipe=recipe).exists()
+        if self.context.get('request').method == 'POST':
+            if favourite:
+                raise serializers.ValidationError({
+                    'error': 'Рецепт уже в избранном.'})
+        else:
+            if not favourite:
+                raise serializers.ValidationError({
+                    'error': 'У вас нет ничего в избранном!'})
+        return attrs

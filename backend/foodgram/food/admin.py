@@ -10,7 +10,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(Ingridient)
 class IngridientAdmin(admin.ModelAdmin):
-    pass
+    list_display = ["name", "measurement_unit"]
+    list_filter = ["name", "measurement_unit"]
 
 
 class IngridientForRecipeInline(admin.TabularInline):
@@ -20,4 +21,5 @@ class IngridientForRecipeInline(admin.TabularInline):
 
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
+    list_display = ["author", "name", "text", "cooking_time"]
     inlines = [IngridientForRecipeInline]

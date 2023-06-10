@@ -6,17 +6,23 @@ from users.models import User
 
 
 class Ingridient(models.Model):
+    """Ингридиент."""
     name = models.CharField(
         'Название',
         unique=True,
         max_length=200)
     measurement_unit = models.CharField('Мера измерения', max_length=200)
 
+    class Meta:
+        verbose_name = 'Игридиент'
+        verbose_name_plural = 'Игридиенты'
+
     def __str__(self):
         return f"{self.name} в {self.measurement_unit}"
 
 
 class Tag(models.Model):
+    """Тэг."""
     COLOURS = [
         ('#E26C2D', 'orange'),
         ('#49B64E', 'green'),
@@ -40,6 +46,8 @@ class Tag(models.Model):
             ])
 
     class Meta:
+        verbose_name = 'Тэг'
+        verbose_name_plural = 'Тэги'
         ordering = ('-id',)
 
     def __str__(self):
@@ -47,6 +55,7 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
+    """Рецепт."""
     author = models.ForeignKey(
         verbose_name='Автор публикации',
         to=User,
@@ -74,12 +83,37 @@ class Recipe(models.Model):
 
     class Meta:
         ordering = ('-id',)
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
 
     def __str__(self):
         return f"{self.name} от {self.author}"
 
 
 class IngridientForRecipe(models.Model):
+    """Ингридиент для рецепта."""
     ingridient = models.ForeignKey(Ingridient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     amount = models.IntegerField()
+
+    class Meta:
+        verbose_name = 'Ингридиент для рецепта'
+        verbose_name_plural = 'Ингридиентов для рецепта'
+
+    def __str__(self):
+        return f"{self.ingridient} в {self.recipe}"
+
+
+class Favourites(models.Model):
+    """Избранные товары."""
+    user = models.ForeignKey(to=User,
+                             on_delete=models.CASCADE)
+    recipe = models.ForeignKey(to=Recipe,
+                               on_delete=models.CASCADE)
+
+    class Meta:
+        verbose_name = "Избранное"
+        verbose_name_plural = "Избранные"
+
+    def __str__(self):
+        return f"{self.user} сохранил {self.recipe}"
