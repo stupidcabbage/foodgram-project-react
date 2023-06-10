@@ -1,5 +1,5 @@
 from django.contrib import admin
-from food.models import Tag, Ingridient, Recipe, IngridientForRecipe
+from food.models import Ingridient, IngridientForRecipe, Recipe, Tag
 
 
 @admin.register(Tag)

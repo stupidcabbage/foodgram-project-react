@@ -97,8 +97,8 @@ class UserTest(APITestCase):
         self._assert_data_exists(data)
         self.assertEqual(data,
                          UserTest.data,
-                         "Проверьте, что у вас правильно настроен serializer " +
-                         "для эндпойнта.")
+                         "Проверьте, что у вас правильно настроен serializer" +
+                         " для эндпойнта.")
 
     def _assert_data_exists(self, data):
         "Проверяет, что эндпойнт что-либо возвращает."
