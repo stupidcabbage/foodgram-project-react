@@ -9,7 +9,6 @@ class Ingridient(models.Model):
     """Ингридиент."""
     name = models.CharField(
         'Название',
-        unique=True,
         max_length=200)
     measurement_unit = models.CharField('Мера измерения', max_length=200)
 
