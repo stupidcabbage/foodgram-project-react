@@ -1,7 +1,7 @@
 from api.serializers import (FavouriteSerializer, IngridientSerializer,
                              RecipeReadSerializer, TagSerializer)
 from django.shortcuts import get_object_or_404
-from food.models import Favourites, Ingridient, Recipe, Tag
+from food.models import Favourites, ingredient, Recipe, Tag
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -18,7 +18,7 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
     """Вьюсет отображения ингридиентов."""
-    queryset = Ingridient.objects.all()
+    queryset = ingredient.objects.all()
     serializer_class = IngridientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
