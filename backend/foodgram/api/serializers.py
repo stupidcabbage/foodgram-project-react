@@ -7,7 +7,7 @@ from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from food.models import (Favourites, Ingredient, IngredientForRecipe, Recipe,
-                         Tag)
+                         Tag, ShoppingCart)
 from rest_framework import serializers
 from users.models import Follow, User
 from django.shortcuts import  get_object_or_404
@@ -54,6 +54,38 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
         read_only_fields = ("id", "name", "image", "cooking_time")
+
+    def _validate(self, attrs, model):
+        request = self.context.get('request')
+        recipe: Recipe = self._args[0]
+        value = model.objects.filter(
+            user=request.user, recipe=recipe).exists()
+
+        if request.method == 'POST':
+            if value:
+                raise serializers.ValidationError({
+                    'errors': 'Рецепт уже добавлен.'})
+        if request.method == 'DELETE':
+            if not value:
+                raise serializers.ValidationError({
+                    'errors': 'Ничего не добавлено.'})
+        return attrs
+
+
+class ShoppingCartSerializer(ShortRecipeSerializer):
+    """Сериализатор для работы со списком предметов."""
+
+    def validate(self, attrs):
+        """Валидация полей для добавления в список предметов."""
+        return super()._validate(attrs=attrs, model=ShoppingCart)
+
+
+class FavoriteSerializer(ShortRecipeSerializer):
+    """Сериализатор для работы со списком избранных предметов."""
+
+    def validate(self, attrs):
+        """Валидация полей для добавления в избранные."""
+        return super()._validate(attrs=attrs, model=Favourites)
 
 
 class CustomUserSerializer(UserSerializer):
@@ -142,6 +174,19 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                                         ingredients=ingredients)
         return recipe
 
+    @transaction.atomic
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        instance.ingredients.clear()
+        self.create_ingredients_amounts(recipe=instance,
+                                        ingredients=ingredients)
+        instance.save()
+        return instance
+
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
@@ -155,12 +200,13 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer()
     ingredients = serializers.SerializerMethodField()
     is_favorited = serializers.SerializerMethodField()
+    is_in_shopping_cart = serializers.SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = ("id", "tags", "author",
-                  "ingredients", "is_favorited", "name", "image",
-                  "text", "cooking_time")
+                  "ingredients", "is_favorited", "is_in_shopping_cart", "name",
+                  "image", "text", "cooking_time")
         read_only_fields = ("id", "author")
 
     def get_ingredients(self, obj):
@@ -177,8 +223,21 @@ class RecipeReadSerializer(serializers.ModelSerializer):
     def get_is_favorited(self, obj):
         """Получение поля нахождения в избранном."""
         user = self.context.get('request').user
-        favorite = Favourites.objects.filter(recipe=obj, user=user).exists()
-        return favorite
+        return self._is_favorite_or_shopping_cart_exists(user,
+                                                         Favourites, obj)
+
+    def get_is_in_shopping_cart(self, obj):
+        """Получение поля нахождения в списке предметов."""
+        user = self.context.get('request').user
+        return self._is_favorite_or_shopping_cart_exists(user,
+                                                         ShoppingCart, obj)
+
+    def _is_favorite_or_shopping_cart_exists(self, user, model, recipe):
+        """Проверяет существование у пользователя рецепта в списке предметов
+        или в списке избранного."""
+        if user.is_authenticated:
+            return model.objects.filter(recipe=recipe, user=user).exists()
+        return False
 
 
 class CustomUserCreateSerializer(UserCreateSerializer):
@@ -252,15 +311,15 @@ class FollowSerializer(serializers.ModelSerializer):
         if request.method == 'POST':
             if request.user.id == author.id:
                 raise serializers.ValidationError({
-                    'error': 'Подписка на себя - запрещена.'})
+                    'errors': 'Подписка на себя - запрещена.'})
             if follow:
                 raise serializers.ValidationError({
-                    'error': 'Вы уже подписаны на данного пользователя.'})
+                    'errors': 'Вы уже подписаны на данного пользователя.'})
 
         if request.method == 'DELETE':
             if not follow:
                 raise serializers.ValidationError({
-                    "error": "Вы не подписаны."})
+                    "errors": "Вы не подписаны."})
         return attrs
 
     def get_is_subscribed(self, obj):
@@ -281,29 +340,3 @@ class FollowSerializer(serializers.ModelSerializer):
         созданных пользователем."""
         recipes_count = Recipe.objects.filter(author=obj).count()
         return recipes_count
-
-
-class FavouriteSerializer(serializers.ModelSerializer):
-    """Сериализатор для работы с избранным."""
-
-    class Meta:
-        model = Recipe
-        fields = ("id", "name", "image", "cooking_time")
-        read_only_fields = fields
-
-    def validate(self, attrs):
-        """Валидация полей для добавления в избранные."""
-        request = self.context.get('request')
-        recipe: Recipe = self._args[0]
-        favourite = Favourites.objects.filter(
-            user=request.user, recipe=recipe).exists()
-
-        if request.method == 'POST':
-            if favourite:
-                raise serializers.ValidationError({
-                    'error': 'Рецепт уже в избранном.'})
-        if request.method == 'DELETE':
-            if not favourite:
-                raise serializers.ValidationError({
-                    'error': 'У вас нет ничего в избранном.'})
-        return attrs

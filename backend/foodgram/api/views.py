@@ -1,11 +1,18 @@
-from api.serializers import (FavouriteSerializer, IngredientSerializer,
+from api.serializers import (ShortRecipeSerializer, IngredientSerializer,
                              RecipeCreateUpdateSerializer,
-                             RecipeReadSerializer, TagSerializer)
+                             RecipeReadSerializer, TagSerializer,
+                             ShoppingCartSerializer, FavoriteSerializer)
 from django.shortcuts import get_object_or_404
-from food.models import Favourites, Ingredient, Recipe, Tag
+from food.models import Favourites, Ingredient, Recipe, Tag, ShoppingCart
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
+from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
+
+SERIALIZERS_MODEL = {
+    Favourites: FavoriteSerializer,
+    ShoppingCart: ShoppingCartSerializer
+}
 
 
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -30,7 +37,7 @@ class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет отображения рецептов."""
     queryset = Recipe.objects.all()
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly,)
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
@@ -43,25 +50,42 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=True,
             methods=['post', 'delete'],
             permission_classes=[IsAuthenticated])
-    def favorite(self, request, pk):
-        user = request.user
+    def shopping_cart(self, request, pk):
         recipe = get_object_or_404(Recipe, id=pk)
 
         if request.method == "POST":
-            serializer = FavouriteSerializer(
-                recipe,
-                data=request.data,
-                context={"request": request})
-            serializer.is_valid(raise_exception=True)
-            Favourites.objects.create(user=user, recipe=recipe)
-            return response.Response(serializer.data,
-                                     status=status.HTTP_200_OK)
-
+            return self._create_to(ShoppingCart, recipe, request)
         if request.method == "DELETE":
-            serializer = FavouriteSerializer(
-                recipe,
-                data=request.data,
-                context={"request": request})
-            serializer.is_valid(raise_exception=True)
-            Favourites.objects.filter(user=user, recipe=recipe).delete()
-            return response.Response(status=status.HTTP_204_NO_CONTENT)
+            return self._delete_from(ShoppingCart, recipe, request)
+
+    @action(detail=True,
+            methods=['post', 'delete'],
+            permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk):
+        recipe = get_object_or_404(Recipe, id=pk)
+
+        if request.method == "POST":
+            return self._create_to(Favourites, recipe, request)
+        if request.method == "DELETE":
+            return self._delete_from(Favourites, recipe, request)
+
+    def _create_to(self, model, recipe, request):
+        """Создает модель, предварительно прогнав через сериализатор."""
+        serializer = self._validate_data(model, request, recipe)
+        model.objects.create(user=request.user, recipe=recipe)
+        return response.Response(serializer.data,
+                                 status=status.HTTP_201_CREATED)
+
+    def _delete_from(self, model, recipe, request):
+        """Удаляет модель, предварительно прогнав через сериализатор."""
+        self._validate_data(model, request, recipe)
+        model.objects.filter(user=request.user, recipe=recipe).delete()
+        return response.Response(status=status.HTTP_204_NO_CONTENT)
+
+    def _validate_data(self, model, request, recipe):
+        serializer = SERIALIZERS_MODEL[model](
+            recipe,
+            data=request.data,
+            context={"request": request})
+        serializer.is_valid(raise_exception=True)
+        return serializer
