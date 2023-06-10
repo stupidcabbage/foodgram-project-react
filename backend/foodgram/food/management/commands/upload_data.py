@@ -1,6 +1,6 @@
 import csv
 from django.core.management.base import BaseCommand
-from food.models import ingredient
+from food.models import Ingredient
 from foodgram.settings import BASE_DIR
 
 
@@ -12,7 +12,7 @@ def upload_ingridients():
         csv_reader = csv.DictReader(csv_file, delimiter=',')
 
         for row in csv_reader:
-            ingredient.objects.get_or_create(
+            Ingredient.objects.get_or_create(
                 name=row['name'],
                 measurement_unit=row[' measurement_unit']
             )

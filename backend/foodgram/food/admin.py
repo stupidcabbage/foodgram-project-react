@@ -1,5 +1,5 @@
 from django.contrib import admin
-from food.models import ingredient, IngridientForRecipe, Recipe, Tag
+from food.models import Ingredient, IngridientForRecipe, Recipe, Tag
 
 
 @admin.register(Tag)
@@ -8,7 +8,7 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ["id", "name", "colour"]
 
 
-@admin.register(ingredient)
+@admin.register(Ingredient)
 class IngridientAdmin(admin.ModelAdmin):
     list_display = ["name", "measurement_unit"]
     list_filter = ["measurement_unit"]

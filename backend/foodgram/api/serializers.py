@@ -5,7 +5,7 @@ from django.core.files.base import ContentFile
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from food.models import Favourites, ingredient, Recipe, Tag
+from food.models import Favourites, Ingredient, Recipe, Tag
 from rest_framework import serializers
 from users.models import Follow, User
 
@@ -20,7 +20,7 @@ class TagSerializer(serializers.ModelSerializer):
 class IngridientSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с ингридиентами."""
     class Meta:
-        model = ingredient
+        model = Ingredient
         fields = ("id", "name", "measurement_unit")
 
 
