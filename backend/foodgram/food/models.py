@@ -67,11 +67,11 @@ class Recipe(models.Model):
         'Описание')
     cooking_time = models.PositiveIntegerField(
         'Время приготовления')
-    ingridients = models.ManyToManyField(
+    ingredients = models.ManyToManyField(
         verbose_name='Ингридиенты',
         to=Ingredient,
-        through="IngridientForRecipe")
-    tag = models.ManyToManyField(
+        through="IngredientForRecipe")
+    tags = models.ManyToManyField(
         verbose_name='Тэги',
         to=Tag,
         related_name='tags')
@@ -89,9 +89,9 @@ class Recipe(models.Model):
         return f"{self.name} от {self.author}"
 
 
-class IngridientForRecipe(models.Model):
+class IngredientForRecipe(models.Model):
     """Ингридиент для рецепта."""
-    ingridient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
     recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
     amount = models.PositiveIntegerField()
 
@@ -100,7 +100,7 @@ class IngridientForRecipe(models.Model):
         verbose_name_plural = 'Ингридиентов для рецепта'
 
     def __str__(self):
-        return f"{self.ingridient} в {self.recipe}"
+        return f"{self.ingredient} в {self.recipe}"
 
 
 class Favourites(models.Model):

@@ -1,6 +1,8 @@
 import csv
+
 from django.core.management.base import BaseCommand
 from food.models import Ingredient
+
 from foodgram.settings import BASE_DIR
 
 
