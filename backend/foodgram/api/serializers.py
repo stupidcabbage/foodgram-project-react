@@ -7,10 +7,9 @@ from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from food.models import (Favourites, Ingredient, IngredientForRecipe, Recipe,
-                         Tag, ShoppingCart)
+                         ShoppingCart, Tag)
 from rest_framework import serializers
 from users.models import Follow, User
-from django.shortcuts import  get_object_or_404
 
 
 class TagSerializer(serializers.ModelSerializer):
