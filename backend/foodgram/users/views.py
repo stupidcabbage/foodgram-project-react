@@ -10,6 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from users.models import Follow, User
+from django.shortcuts import get_object_or_404
 
 
 class MyAuthToken(ObtainAuthToken):
@@ -43,17 +44,23 @@ class CustomUserViewSet(UserViewSet):
             permission_classes=[IsAuthenticated])
     def subscribe(self, request, id):
         user = request.user
-        queryset = User.objects.filter(pk=id)
-        pages = self.paginate_queryset(queryset)
-        serializer = FollowSerializer(pages,
-                                      data=request.data,
-                                      many=True,
-                                      context={'request':  request})
-        if serializer.is_valid(raise_exception=True):
-            Follow.objects.get_or_create(user=user, author=queryset[0])
-            return Response(serializer.data,
-                            status=status.HTTP_201_CREATED)
-        return Response(serializer.errors)
+        author = get_object_or_404(User, id=id)
+
+        if request.method == 'POST':
+            serializer = FollowSerializer(author,
+                                          data=request.data,
+                                          context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.create(user=user, author=author)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            serializer = FollowSerializer(author,
+                                          data=request.data,
+                                          context={"request": request})
+            serializer.is_valid(raise_exception=True)
+            Follow.objects.filter(user=user, author=author).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             permission_classes=[IsAuthenticated])

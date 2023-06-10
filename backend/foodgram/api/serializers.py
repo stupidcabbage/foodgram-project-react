@@ -8,21 +8,25 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from food.models import Ingridient, Recipe, Tag
 from rest_framework import serializers
 from users.models import Follow, User
+from rest_framework.response import Response
 
 
 class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с тэгами."""
     class Meta:
         model = Tag
         fields = ("id", "name", "colour", "slug")
 
 
 class IngridientSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с ингридиентами."""
     class Meta:
         model = Ingridient
         fields = ("id", "name", "measurement_unit")
 
 
 class Base64ImageField(serializers.ImageField):
+    """Перевод картинки из base64 в нормальный формат."""
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
             format, imgstr = data.split(';base64,')
@@ -33,15 +37,15 @@ class Base64ImageField(serializers.ImageField):
 
 
 class FollowRecipeSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=True)
+    """Сериализатор для работы с рецептами в отображении подписок."""
 
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
-        read_only_fields = ("id",)
 
 
 class CustomUserSerializer(UserSerializer):
+    """Кастомный сериализатор для работы с пользователями."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
@@ -56,6 +60,7 @@ class CustomUserSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
+        """Получение поля is_subscribed."""
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
@@ -63,7 +68,7 @@ class CustomUserSerializer(UserSerializer):
 
 
 class RecipeReadSerializer(serializers.ModelSerializer):
-    image = Base64ImageField(required=True)
+    """Сериализатор для чтения рецептов (GET)."""
     tag = TagSerializer(many=True)
     author = CustomUserSerializer()
     ingridients = serializers.SerializerMethodField()
@@ -76,6 +81,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         read_only_fields = ("id", "author")
 
     def get_ingridients(self, obj):
+        """Получение поля ингридиенты."""
         recipe = obj
         ingridients = recipe.ingridients.values(
             'id',
@@ -128,6 +134,7 @@ class CustomAuthTokenEmailSerializer(serializers.Serializer):
 
 
 class FollowSerializer(serializers.ModelSerializer):
+    """Сериализатор для работы с подписками."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
     recipes_count = serializers.SerializerMethodField(read_only=True)
@@ -144,28 +151,43 @@ class FollowSerializer(serializers.ModelSerializer):
             'recipes',
             'recipes_count'
         )
+        read_only_fields = ('email', 'username', 'first_name', 'last_name')
 
     def validate(self, attrs):
+        """Валидация полей подписок."""
         user = self.context.get('request').user
-        if user.id == attrs.id:
-            raise serializers.ValidationError(
-                _('Subscribing to yourself is prohibited.'))
+        author = self._args[0]
+        follow = Follow.objects.filter(user=user, author=author).exists()
+        if self.context.get('request').method == 'POST':
+            if user.id == author.id:
+                raise serializers.ValidationError({
+                    'error': 'Подписка на себя - запрещена.'})
+            if follow:
+                raise serializers.ValidationError({
+                    'error': 'Вы уже подписаны на данного пользователя.'})
+        else:
+            if not follow:
+                raise serializers.ValidationError({
+                    "error": "Вы не подписаны."})
+        return attrs
 
     def get_is_subscribed(self, obj):
+        """Получение поля is_subscribed."""
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
         return Follow.objects.filter(user=user, author=obj).exists()
 
     def get_recipes(self, obj):
+        """Получение поля рецепта."""
         recipe = Recipe.objects.filter(
             author=obj)
-        serializer = FollowRecipeSerializer(data=recipe, many=True)
-        print(serializer.error_messages)
-        if not serializer.is_valid():
-            return serializer.data
+        serializer = FollowRecipeSerializer(recipe, many=True)
+        return serializer.data
 
     def get_recipes_count(self, obj):
+        """Получение поля recipes_count, отображающий кол-во рецептов,
+        созданных пользователем."""
         recipes_count = Recipe.objects.filter(
             author=obj).count()
         return recipes_count
