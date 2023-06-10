@@ -62,7 +62,7 @@ class Recipe(models.Model):
     ingridients = models.ManyToManyField(
         verbose_name='Ингридиенты',
         to=Ingridient,
-        related_name='ingridients')
+        through="IngridientForRecipe")
     tag = models.ManyToManyField(
         verbose_name='Тэги',
         to=Tag,
@@ -77,3 +77,9 @@ class Recipe(models.Model):
 
     def __str__(self):
         return f"{self.name} от {self.author}"
+
+
+class IngridientForRecipe(models.Model):
+    ingridient = models.ForeignKey(Ingridient, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    amount = models.IntegerField()

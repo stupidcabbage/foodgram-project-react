@@ -1,5 +1,5 @@
 from django.contrib import admin
-from food.models import Tag, Ingridient, Recipe
+from food.models import Tag, Ingridient, Recipe, IngridientForRecipe
 
 
 @admin.register(Tag)
@@ -13,6 +13,11 @@ class IngridientAdmin(admin.ModelAdmin):
     pass
 
 
+class IngridientForRecipeInline(admin.TabularInline):
+    model = IngridientForRecipe
+    extra = 1
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
-    pass
+    inlines = [IngridientForRecipeInline]
