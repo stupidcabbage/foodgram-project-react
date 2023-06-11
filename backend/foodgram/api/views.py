@@ -4,10 +4,15 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeReadSerializer, ShoppingCartSerializer,
                              ShortRecipeSerializer, TagSerializer)
 from django.shortcuts import get_object_or_404
-from food.models import Favourites, Ingredient, Recipe, ShoppingCart, Tag
+from food.models import Favourites, Ingredient, Recipe, ShoppingCart, Tag, IngredientForRecipe
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
+from django.http import HttpResponse
+from rest_framework.response import Response
+from datetime import datetime
+from django.db.models import Sum
+
 
 SERIALIZERS_MODEL = {
     Favourites: FavoriteSerializer,
@@ -68,6 +73,38 @@ class RecipeViewSet(viewsets.ModelViewSet):
             return self._create_to(Favourites, recipe, request)
         if request.method == "DELETE":
             return self._delete_from(Favourites, recipe, request)
+
+    @action(detail=False,
+            methods=['GET'],
+            permission_classes=[IsAuthenticated])
+    def download_shopping_cart(self, request):
+        user = request.user
+
+        ingredients = IngredientForRecipe.objects.filter(
+            recipe__shoppingcart__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+
+        today = datetime.today()
+        shopping_list = (
+            f'Список покупок для: {user.get_full_name()}\n\n'
+            f'Дата: {today:%d.%m.%y}\n\n'
+        )
+        shopping_list += '\n'.join([
+            f'- {ingredient["ingredient__name"]} '
+            f'({ingredient["ingredient__measurement_unit"]})'
+            f' - {ingredient["amount"]}'
+            for ingredient in ingredients
+        ])
+        shopping_list += f'\n\nFoodgram ({today:%Y})'
+
+        filename = f'{user.username}_shopping_list.txt'
+        response = HttpResponse(shopping_list, content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={filename}'
+
+        return response
 
     def _create_to(self, model, recipe, request):
         """Создает модель, предварительно прогнав через сериализатор."""
