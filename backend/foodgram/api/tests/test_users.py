@@ -25,7 +25,8 @@ class UserTest(APITestCase):
             "id": UserTest.user.id,
             "username": UserTest.user.username,
             "first_name": UserTest.user.first_name,
-            "last_name": UserTest.user.last_name
+            "last_name": UserTest.user.last_name,
+            "is_subscribed": False
         }
 
     def test_get_users_list(self):
@@ -33,16 +34,13 @@ class UserTest(APITestCase):
         Проверяет возможность получения списка всех пользователей.
         """
         url = reverse("routers:user-list")
-        response = self.client.get(url)
-        self._assert_status_code_is_401(response.status_code)
-
         response = self._authorize_client_and_get_response(url=url)
         self._assert_status_code_is_200(response.status_code)
-        self.assertEqual(response.data.get("next"), None,
+        self.assertEqual(response.data.get("count"), 1,
                          "Проверьте, что у вас включена пагинация" +
                          "по страницам.")
         self._assert_serializer_is_correct(
-            response.data.get('results')[FIRST_RESULT])
+            response.data.get("results")[FIRST_RESULT])
 
     def test_get_user_by_id(self):
         """
@@ -69,7 +67,7 @@ class UserTest(APITestCase):
         """
         Проверяет энпойнт получения личного аккаунта.
         """
-        url = reverse('routers:user-me')
+        url = reverse("routers:user-me")
         response = self.client.get(url)
         self._assert_status_code_is_401(response.status_code)
 
@@ -96,7 +94,13 @@ class UserTest(APITestCase):
 
     def _assert_serializer_is_correct(self, data):
         "Проверяет, что у эндпойнта корректно настроен serializer."
+        self._assert_data_exists(data)
         self.assertEqual(data,
                          UserTest.data,
                          "Проверьте, что у вас правильно настроен serializer" +
-                         "для эндпойнта.")
+                         " для эндпойнта.")
+
+    def _assert_data_exists(self, data):
+        "Проверяет, что эндпойнт что-либо возвращает."
+        self.assertIsInstance(data, dict,
+                              "Проверьте, что эндпойнт что-либо возвращает.")

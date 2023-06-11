@@ -12,20 +12,20 @@ class SetPasswordTest(APITestCase):
     def setUpClass(cls) -> None:
         super().setUpClass()
         cls.user = User.objects.create_user(
-            email='test@test.com',
-            username='testuser',
-            first_name='first_test',
-            last_name='last_test',
-            password='HelloWorldSecurePassword'
+            email="test@test.com",
+            username="testuser",
+            first_name="first_test",
+            last_name="last_test",
+            password="HelloWorldSecurePassword"
         )
         cls.data = {
-            "new_password": 'HelloWorldSecurePasswordItNewPassword123123',
-            "current_password": 'HelloWorldSecurePassword'
+            "new_password": "HelloWorldSecurePasswordItNewPassword123123",
+            "current_password": "HelloWorldSecurePassword"
         }
         cls.token, cls.created = Token.objects.get_or_create(
             user=SetPasswordTest.user)
 
-        cls.url = reverse('set_password')
+        cls.url = reverse("set_password")
 
     def test_with_unathorized_user(self):
         """
@@ -33,7 +33,7 @@ class SetPasswordTest(APITestCase):
         """
         response = self.client.post(SetPasswordTest.url,
                                     data=SetPasswordTest.data,
-                                    format='json')
+                                    format="json")
         self.assertEqual(response.status_code,
                          status.HTTP_401_UNAUTHORIZED)
 
@@ -41,10 +41,10 @@ class SetPasswordTest(APITestCase):
         """
         Проверяем воозможность смены пароля при валидных даннных.
         """
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.post(SetPasswordTest.url,
                                     data=SetPasswordTest.data,
-                                    format='json')
+                                    format="json")
         self.assertEqual(response.status_code,
                          status.HTTP_204_NO_CONTENT)
 
@@ -52,15 +52,15 @@ class SetPasswordTest(APITestCase):
         """
         Проверяем наличие ошибки при отсутствии обязательных полей.
         """
-        self.client.credentials(HTTP_AUTHORIZATION=f'Token {self.token.key}')
+        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         response = self.client.post(SetPasswordTest.url,
-                                    format='json')
+                                    format="json")
 
-        for field in ('current_password', 'new_password'):
+        for field in ("current_password", "new_password"):
             with self.subTest(field=field):
                 self.assertEqual(
                     response.data.get(field)[FIRST_ENDPOINT_ERROR].code,
-                    'required',
-                    'Проверьте, что при отсутствии обязательных полей' +
-                    'эндпойнт возвращает ошибку.'
+                    "required",
+                    "Проверьте, что при отсутствии обязательных полей" +
+                    "эндпойнт возвращает ошибку."
                 )
