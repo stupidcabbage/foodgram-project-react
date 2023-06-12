@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
@@ -85,7 +83,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
             methods=['GET'],
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
-        user = request.user
 
         ingredients = IngredientForRecipe.objects.filter(
             recipe__shoppingcart__user=request.user
@@ -94,22 +91,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount'))
 
-        today = datetime.today()
         shopping_list = (
-            f'Список покупок для: {user.get_full_name()}\n\n'
-            f'Дата: {today:%d.%m.%y}\n\n'
+            'Список покупок: \n\n'
         )
-        shopping_list += '\n'.join([
-            f'- {ingredient["ingredient__name"]} '
-            f'({ingredient["ingredient__measurement_unit"]})'
-            f' - {ingredient["amount"]}'
-            for ingredient in ingredients
-        ])
-        shopping_list += f'\n\nFoodgram ({today:%Y})'
+        for ingredient in ingredients:
+            shopping_list += (
+                f'- {ingredient["ingredient__name"]} '
+                f'({ingredient["ingredient__measurement_unit"]})'
+                f' - {ingredient["amount"]}'
+            ) + '\n'
 
-        filename = f'{user.username}_shopping_list.txt'
-        response = HttpResponse(shopping_list, content_type='text/plain')
-        response['Content-Disposition'] = f'attachment; filename={filename}'
+        name = 'shop_list.txt'
+        response = HttpResponse(shopping_list,
+                                content_type='text/plain')
+        response['Content-Disposition'] = f'attachment; filename={name}'
 
         return response
 
