@@ -1,13 +1,15 @@
-from users.models import User, Follow
-from food.models import Recipe
-from rest_framework.authtoken.models import Token
-from rest_framework import status
-from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
+import shutil
+import tempfile
+
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
-import tempfile
-import shutil
+from food.models import Recipe
+from rest_framework import status
+from rest_framework.authtoken.models import Token
+from rest_framework.reverse import reverse
+from rest_framework.test import APITestCase
+from users.models import Follow, User
+from api.tests.service import StandartTest
 
 MEDIA_ROOT = tempfile.mkdtemp()
 FIRST_RESULT = 0
@@ -20,7 +22,7 @@ SMALL_GIF = (
 
 
 @override_settings(MEDIA_ROOT=MEDIA_ROOT)
-class FollowTest(APITestCase):
+class FollowTest(StandartTest):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
@@ -58,7 +60,7 @@ class FollowTest(APITestCase):
             "recipes": [{
                 "id": FollowTest.recipe.id,
                 "name": FollowTest.recipe.name,
-                "image": FollowTest.recipe.image.url,
+                "image": "http://testserver" + FollowTest.recipe.image.url,
                 "cooking_time": FollowTest.recipe.cooking_time}],
             "recipes_count": 1
         }
@@ -74,42 +76,11 @@ class FollowTest(APITestCase):
         """
         url = reverse("routers:user-subscribe", args=[2])
 
-        response = self.client.post(url)
-        self._assert_response_code_is_unathorized(response.status_code)
-        self.assertEqual(Follow.objects.all().count(),
-                         0,
-                         "Проверьте, что неавторизованный пользователь" +
-                         " не может подписаться.")
-
-        self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
-        response = self.client.post(url)
-        self.assertEqual(response.status_code,
-                         status.HTTP_201_CREATED,
-                         "Проверьте, что эндпойнт " +
-                         "возвращает статус HTTP_201_CREATED")
-        self._assert_serializer_is_correct(
-            response.data)
-
-        response = self.client.post(url)
-        self.assertEqual(response.status_code,
-                         status.HTTP_400_BAD_REQUEST,
-                         "Проверьте, что при попытке повторной подписке" +
-                         " на того же пользователя, эндпойнт возвращает" +
-                         "статус HTTP_400_BAD_REQUEST")
-
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code,
-                         status.HTTP_204_NO_CONTENT,
-                         "Проверьте, что при успешной отписки от" +
-                         " пользователя, эндпойнт возвращает" +
-                         "статус HTTP_204_NO_CONTENT")
-
-        response = self.client.delete(url)
-        self.assertEqual(response.status_code,
-                         status.HTTP_400_BAD_REQUEST,
-                         "Проверьте, что при попытке отписки от" +
-                         " пользователя на которого не подписан," +
-                         "эндпойнт возвращает статус HTTP_204_NO_CONTENT")
+        self.if_is_unathorized_post(url=url, model=Follow)
+        self.success_create_test(url=url, model=Follow)
+        self.dublicate_create_test(url=url, model=Follow)
+        self.success_delete_test(url=url, model=Follow)
+        self.delete_non_saved_object_test(url=url, model=Follow)
 
         url = reverse("routers:user-subscribe", args=[1])
         response = self.client.post(url)
@@ -123,8 +94,7 @@ class FollowTest(APITestCase):
         Проверяем работу эндпойнта вывода списка подписок.
         """
         url = reverse("routers:user-subscriptions")
-        response = self.client.get(url)
-        self._assert_response_code_is_unathorized(response.status_code)
+        self.if_is_unathorized_post(url=url, model=Follow)
 
         self.client.credentials(HTTP_AUTHORIZATION=f"Token {self.token.key}")
         self.client.post(
@@ -151,6 +121,7 @@ class FollowTest(APITestCase):
 
     def _assert_serializer_is_correct(self, data):
         """Проверяет, что у эндпойнта корректно настроен serializer."""
+        self._assert_data_exists(data)
         data['recipes'] = [{"id": data['recipes'][0].get('id'),
                             "name": data['recipes'][0].get('name'),
                             "image": data['recipes'][0].get('image'),

@@ -6,7 +6,7 @@ from users.models import User
 
 
 class Ingredient(models.Model):
-    """Ингридиент."""
+    """Ингредиент."""
     name = models.CharField(
         'Название',
         max_length=200)
@@ -76,7 +76,7 @@ class Recipe(models.Model):
         to=Tag,
         related_name='tags')
     image = models.ImageField(
-        upload_to='food/images.',
+        upload_to='media/recipes/images',
         null=True,
         default=None)
 
@@ -103,7 +103,7 @@ class IngredientForRecipe(models.Model):
         return f"{self.ingredient} в {self.recipe}"
 
 
-class Favourites(models.Model):
+class Favorites(models.Model):
     """Избранные товары."""
     user = models.ForeignKey(to=User,
                              on_delete=models.CASCADE)

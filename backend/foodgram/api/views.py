@@ -11,14 +11,14 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from food.models import (Favourites, Ingredient, IngredientForRecipe, Recipe,
+from food.models import (Favorites, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
 
 SERIALIZERS_MODEL = {
-    Favourites: FavoriteSerializer,
+    Favorites: FavoriteSerializer,
     ShoppingCart: ShoppingCartSerializer
 }
 
@@ -77,9 +77,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
 
         if request.method == "POST":
-            return self._create_to(Favourites, recipe, request)
+            return self._create_to(Favorites, recipe, request)
         if request.method == "DELETE":
-            return self._delete_from(Favourites, recipe, request)
+            return self._delete_from(Favorites, recipe, request)
 
     @action(detail=False,
             methods=['GET'],

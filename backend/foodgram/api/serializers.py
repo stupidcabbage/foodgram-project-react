@@ -6,7 +6,7 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from food.models import (Favourites, Ingredient, IngredientForRecipe, Recipe,
+from food.models import (Favorites, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
 from rest_framework import serializers
 from users.models import Follow, User
@@ -48,7 +48,6 @@ class Base64ImageField(serializers.ImageField):
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для работы с рецептами в отображении подписок."""
-
     class Meta:
         model = Recipe
         fields = ("id", "name", "image", "cooking_time")
@@ -84,7 +83,7 @@ class FavoriteSerializer(ShortRecipeSerializer):
 
     def validate(self, attrs):
         """Валидация полей для добавления в избранные."""
-        return super()._validate(attrs=attrs, model=Favourites)
+        return super()._validate(attrs=attrs, model=Favorites)
 
 
 class CustomUserSerializer(UserSerializer):
@@ -223,7 +222,7 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         """Получение поля нахождения в избранном."""
         user = self.context.get('request').user
         if user.is_authenticated:
-            return Favourites.objects.filter(recipe=obj, user=user).exists()
+            return Favorites.objects.filter(recipe=obj, user=user).exists()
         return False
 
     def get_is_in_shopping_cart(self, obj):
@@ -326,7 +325,8 @@ class FollowSerializer(serializers.ModelSerializer):
     def get_recipes(self, obj):
         """Получение поля рецепта."""
         recipe = Recipe.objects.filter(author=obj)
-        serializer = ShortRecipeSerializer(recipe, many=True)
+        serializer = ShortRecipeSerializer(
+            recipe, context=self.context, many=True)
         return serializer.data
 
     def get_recipes_count(self, obj):
