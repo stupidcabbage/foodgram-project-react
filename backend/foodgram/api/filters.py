@@ -27,13 +27,11 @@ class RecipeFilter(django_filters.FilterSet):
         fields = ('tags', 'author')
 
     def filter_is_favorited(self, queryset, name, value):
-        user = self.request.user
-        if value and not user.is_anonymous:
-            return queryset.filter(favourites__user=user)
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(favourites__user=self.request.user)
         return queryset
 
     def filter_is_in_shopping_cart(self, queryset, name, value):
-        user = self.request.user
-        if value and not user.is_anonymous:
-            return queryset.filter(shopping_cart__user=user)
+        if value and not self.request.user.is_anonymous:
+            return queryset.filter(shopping_cart__user=self.request.user)
         return queryset
