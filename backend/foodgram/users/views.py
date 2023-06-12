@@ -1,3 +1,4 @@
+from api.pagination import CustomPagination
 from api.serializers import (CustomAuthTokenEmailSerializer,
                              CustomUserSerializer, FollowSerializer)
 from django.shortcuts import get_object_or_404
@@ -39,6 +40,7 @@ class CustomUserViewSet(UserViewSet):
     """Вьюсет для работы с пользователями."""
     queryset = User.objects.all()
     serializer_class = CustomUserSerializer
+    pagination_class = CustomPagination
 
     @action(detail=True,
             methods=['post', 'delete'],

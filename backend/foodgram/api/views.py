@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from api.filters import IngredientFilter, RecipeFilter
+from api.pagination import CustomPagination
 from api.permissions import IsAdminOrReadOnly, IsAuthorOrReadOnly
 from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeCreateUpdateSerializer,
@@ -8,6 +10,7 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
 from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from food.models import (Favourites, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
 from rest_framework import filters, mixins, response, status, viewsets
@@ -26,6 +29,7 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
+    pagination_class = None
 
 
 class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
@@ -35,14 +39,17 @@ class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['name']
+    filter_backends = [filters.SearchFilter, DjangoFilterBackend]
+    filterset_class = IngredientFilter
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет отображения рецептов."""
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly,)
+    pagination_class = CustomPagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)

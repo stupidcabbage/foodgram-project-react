@@ -7,7 +7,7 @@ from users.views import CustomUserViewSet, LogoutToken, MyAuthToken
 router_v1 = DefaultRouter()
 router_v1.register(r"users", CustomUserViewSet, "user")
 router_v1.register(r"tags", TagViewSet, "tags")
-router_v1.register(r"ingridients", IngridientViewSet, "ingridients")
+router_v1.register(r"ingredients", IngridientViewSet, "ingredients")
 router_v1.register(r"recipes", RecipeViewSet, "recipes")
 
 
