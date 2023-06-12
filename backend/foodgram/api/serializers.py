@@ -9,7 +9,14 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from food.models import (Favorites, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
 from rest_framework import serializers
-from users.models import Follow, User
+from services import favorites as fav
+from services import follow as fol
+from services import recipe as rec
+from services import shopping_cart as sc
+from services import ingredient as ingr
+from services import tag as tg
+from services import model as m
+from users.models import User
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -56,8 +63,7 @@ class ShortRecipeSerializer(serializers.ModelSerializer):
     def _validate(self, attrs, model):
         request = self.context.get('request')
         recipe: Recipe = self._args[0]
-        value = model.objects.filter(
-            user=request.user, recipe=recipe).exists()
+        value = m.is_exists(request.user, recipe, model)
 
         if request.method == 'POST':
             if value:
@@ -106,7 +112,7 @@ class CustomUserSerializer(UserSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
+        return fol.follow_exists(user, obj)
 
 
 class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
@@ -114,7 +120,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     author = CustomUserSerializer(read_only=True)
     ingredients = IngredientForRecipeSerializer(many=True)
     tags = serializers.PrimaryKeyRelatedField(
-        queryset=Tag.objects.all(),
+        queryset=tg.get_all_tags(),
         many=True
     )
     image = Base64ImageField()
@@ -131,7 +137,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 'ingredients': 'Необходим хотя бы один ингредиент.'})
         ingredients_list = []
         for ingredient in value:
-            if not Ingredient.objects.filter(id=ingredient['id']).exists():
+            if not ingr.is_exists(id=ingredient['id']):
                 raise serializers.ValidationError({
                     'ingredients': 'Данного ингредиента не существует.'})
 
@@ -154,19 +160,16 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
         """Получение поля ингредиента."""
-        IngredientForRecipe.objects.bulk_create(
-            [IngredientForRecipe(
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                recipe=recipe,
-                amount=ingredient['amount']
-            ) for ingredient in ingredients]
-        )
+        for ingredient in ingredients:
+            ingr.create_ingredient_for_recipe(
+                ingredient, recipe, ingredient['amount']
+            )
 
     @transaction.atomic
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
+        recipe = rec.create_recipe(validated_data)
         recipe.tags.set(tags)
         self.create_ingredients_amounts(recipe=recipe,
                                         ingredients=ingredients)
@@ -222,14 +225,14 @@ class RecipeReadSerializer(serializers.ModelSerializer):
         """Получение поля нахождения в избранном."""
         user = self.context.get('request').user
         if user.is_authenticated:
-            return Favorites.objects.filter(recipe=obj, user=user).exists()
+            return fav.is_favorite_exists(obj, user)
         return False
 
     def get_is_in_shopping_cart(self, obj):
         """Получение поля нахождения в списке предметов."""
         user = self.context.get('request').user
         if user.is_authenticated:
-            return ShoppingCart.objects.filter(recipe=obj, user=user).exists()
+            return sc.is_shopping_cart_exists(obj, user)
         return False
 
 
@@ -298,8 +301,7 @@ class FollowSerializer(serializers.ModelSerializer):
         """Валидация полей подписок."""
         request = self.context.get('request')
         author = self._args[0]
-        follow = Follow.objects.filter(
-            user=request.user, author=author).exists()
+        follow = fol.follow_exists(request.user, author)
 
         if request.method == 'POST':
             if request.user.id == author.id:
@@ -320,11 +322,11 @@ class FollowSerializer(serializers.ModelSerializer):
         user = self.context.get('request').user
         if user.is_anonymous:
             return False
-        return Follow.objects.filter(user=user, author=obj).exists()
+        return fol.follow_exists(user, obj)
 
     def get_recipes(self, obj):
         """Получение поля рецепта."""
-        recipe = Recipe.objects.filter(author=obj)
+        recipe = rec.filter_by_author(author=obj)
         serializer = ShortRecipeSerializer(
             recipe, context=self.context, many=True)
         return serializer.data
@@ -332,5 +334,5 @@ class FollowSerializer(serializers.ModelSerializer):
     def get_recipes_count(self, obj):
         """Получение поля recipes_count, отображающий кол-во рецептов,
         созданных пользователем."""
-        recipes_count = Recipe.objects.filter(author=obj).count()
+        recipes_count = rec.get_count_recipe_filtering_author(obj)
         return recipes_count

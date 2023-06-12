@@ -5,15 +5,17 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
                              RecipeCreateUpdateSerializer,
                              RecipeReadSerializer, ShoppingCartSerializer,
                              TagSerializer)
-from django.db.models import Sum
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from food.models import (Favorites, Ingredient, IngredientForRecipe, Recipe,
-                         ShoppingCart, Tag)
+from food.models import Favorites, Recipe, ShoppingCart
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
+from services import tag, recipe
+from services import ingredient as ingr
+from services import model as m
+from rest_framework.response import Response
 
 SERIALIZERS_MODEL = {
     Favorites: FavoriteSerializer,
@@ -24,7 +26,7 @@ SERIALIZERS_MODEL = {
 class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                  viewsets.GenericViewSet):
     """Вьюсет для отображения тэгов."""
-    queryset = Tag.objects.all()
+    queryset = tag.get_all_tags()
     serializer_class = TagSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
@@ -33,7 +35,7 @@ class TagViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
     """Вьюсет отображения ингридиентов."""
-    queryset = Ingredient.objects.all()
+    queryset = ingr.get_all_ingredients()
     serializer_class = IngredientSerializer
     permission_classes = (AllowAny,)
     pagination_class = None
@@ -43,7 +45,7 @@ class IngridientViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет отображения рецептов."""
-    queryset = Recipe.objects.all()
+    queryset = recipe.get_all_recipes()
     permission_classes = (IsAuthorOrReadOnly | IsAdminOrReadOnly,)
     pagination_class = CustomPagination
     filter_backends = [DjangoFilterBackend]
@@ -84,12 +86,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             permission_classes=[IsAuthenticated])
     def download_shopping_cart(self, request):
 
-        ingredients = IngredientForRecipe.objects.filter(
-            recipe__shoppingcart__user=request.user
-        ).values(
-            'ingredient__name',
-            'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ingredients = ingr.get_sum_amount(user=request.user)
 
         shopping_list = (
             'Список покупок: \n\n'
@@ -110,15 +107,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def _create_to(self, model, recipe, request):
         """Создает модель, предварительно прогнав через сериализатор."""
+        if m.is_exists(request.user, recipe, model):
+            return Response({'errors': 'Рецепт уже добавлен!'},
+                            status=status.HTTP_400_BAD_REQUEST)
         serializer = self._validate_data(model, request, recipe)
-        model.objects.create(user=request.user, recipe=recipe)
+        m.create(request.user, recipe, model)
         return response.Response(serializer.data,
                                  status=status.HTTP_201_CREATED)
 
     def _delete_from(self, model, recipe, request):
         """Удаляет модель, предварительно прогнав через сериализатор."""
+        if not m.is_exists(request.user, recipe, model):
+            return Response({'errors': 'Рецепт уже удален!'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
         self._validate_data(model, request, recipe)
-        model.objects.filter(user=request.user, recipe=recipe).delete()
+        m.delete(request.user, recipe, model)
         return response.Response(status=status.HTTP_204_NO_CONTENT)
 
     def _validate_data(self, model, request, recipe):
