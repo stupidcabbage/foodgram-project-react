@@ -80,20 +80,20 @@ class UserTest(APITestCase):
         return self.client.get(url)
 
     def _assert_status_code_is_200(self, status_code: status):
-        "Проверяет, что статус эндпойнта равен HTTP_200_OK."
+        """Проверяет, что статус эндпойнта равен HTTP_200_OK."""
         self.assertEqual(status_code, status.HTTP_200_OK,
                          "Проверьте, что эндпойнт " +
                          "возвращает статус HTTP_200_OK")
 
     def _assert_status_code_is_401(self, status_code: status):
-        "Проверяет, что статус эндпойнта равен HTTP_401_UNAUTHORIZED."
+        """Проверяет, что статус эндпойнта равен HTTP_401_UNAUTHORIZED."""
         self.assertEqual(status_code,
                          status.HTTP_401_UNAUTHORIZED,
                          "Проверьте, что неавторизованным пользователям" +
                          " эндпойнт возвращает статус HTTP_401_UNAUTHORIZED")
 
     def _assert_serializer_is_correct(self, data):
-        "Проверяет, что у эндпойнта корректно настроен serializer."
+        """Проверяет, что у эндпойнта корректно настроен serializer."""
         self._assert_data_exists(data)
         self.assertEqual(data,
                          UserTest.data,

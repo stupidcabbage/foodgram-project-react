@@ -1,4 +1,4 @@
-from food.models import Tag
+from food.models import Ingredient
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
@@ -8,40 +8,39 @@ FIRST_TAG = 0
 FIRST_ENDPOINT_ERROR = 0
 
 
-class TagsTest(APITestCase):
+class IngredientsTest(APITestCase):
     @classmethod
     def setUpClass(cls) -> None:
         super().setUpClass()
-        cls.tag = Tag.objects.create(
-            name="Завтрак",
-            colour="#8775fD2",
-            slug="breakfast"
+        cls.ingredient = Ingredient.objects.create(
+            name="Test",
+            measurement_unit="автомобиль"
         )
-        cls.data = {"id": TagsTest.tag.id,
-                    "name": TagsTest.tag.name,
-                    "colour": TagsTest.tag.colour,
-                    "slug": TagsTest.tag.slug}
+        cls.data = {"id": IngredientsTest.ingredient.id,
+                    "name": IngredientsTest.ingredient.name,
+                    "measurement_unit":
+                        IngredientsTest.ingredient.measurement_unit}
 
-    def test_get_list_tags(self):
+    def test_get_ingredients_list(self):
         """
-        Проверяем работу эндпойнта по получению списка тэгов.
+        Проверяем работу эндпойнта по получению списка ингредиентов.
         """
-        url = reverse("routers:tags-list")
+        url = reverse("routers:ingredients-list")
         response = self.client.get(url)
         self._assert_status_code_is_200(response.status_code)
         self._assert_serializer_is_correct(
             response.data[FIRST_TAG])
 
-    def test_get_tag_by_id(self):
+    def test_get_ingredient_by_id(self):
         """
-        Проверяем работу эндпойнта по получения тэга по ID.
+        Проверяем работу энпойнта по получению ингредиента по ID.
         """
-        url = reverse("routers:tags-detail", args=[1])
+        url = reverse("routers:ingredients-detail", args=[1])
         response = self.client.get(url)
         self._assert_status_code_is_200(response.status_code)
         self._assert_serializer_is_correct(response.data)
 
-        url = reverse("routers:tags-detail", args=[2])
+        url = reverse("routers:ingredients-detail", args=[2])
         response = self.client.get(url)
         self.assertEqual(
             response.status_code,
@@ -64,9 +63,9 @@ class TagsTest(APITestCase):
     def _assert_serializer_is_correct(self, data):
         "Проверяет, что у эндпойнта корректно настроен serializer."
         self.assertEqual(data,
-                         TagsTest.data,
+                         IngredientsTest.data,
                          "Проверьте, что у вас правильно настроена." +
-                         "выдача тэгов.")
+                         "выдача ингредиентов.")
 
     def _assert_data_exists(self, data):
         "Проверяет, что эндпойнт что-либо возвращает."
