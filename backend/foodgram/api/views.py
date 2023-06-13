@@ -8,17 +8,17 @@ from api.serializers import (FavoriteSerializer, IngredientSerializer,
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from food.models import Favorites, Recipe, ShoppingCart
+from food.models import Favorite, Recipe, ShoppingCart
 from rest_framework import filters, mixins, response, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import SAFE_METHODS, AllowAny, IsAuthenticated
-from services import tag, recipe
+from rest_framework.response import Response
 from services import ingredient as ingr
 from services import model as m
-from rest_framework.response import Response
+from services import recipe, tag
 
 SERIALIZERS_MODEL = {
-    Favorites: FavoriteSerializer,
+    Favorite: FavoriteSerializer,
     ShoppingCart: ShoppingCartSerializer
 }
 
@@ -77,9 +77,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
 
         if request.method == "POST":
-            return self._create_to(Favorites, recipe, request)
+            return self._create_to(Favorite, recipe, request)
         if request.method == "DELETE":
-            return self._delete_from(Favorites, recipe, request)
+            return self._delete_from(Favorite, recipe, request)
 
     @action(detail=False,
             methods=['GET'],

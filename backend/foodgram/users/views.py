@@ -15,7 +15,7 @@ from services import follow, users
 from users.models import User
 
 
-class MyAuthToken(ObtainAuthToken):
+class AuthToken(ObtainAuthToken):
     """Получение токена пользователем."""
     serializer_class = CustomAuthTokenEmailSerializer
 
@@ -55,7 +55,7 @@ class CustomUserViewSet(UserViewSet):
             follow.create_follow(user, author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        if request.method == 'DELETE':
+        else:
             serializer = self._validate_data(author, request)
             follow.delete_follow(user, author)
             return Response(status=status.HTTP_204_NO_CONTENT)

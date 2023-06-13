@@ -6,16 +6,16 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
-from food.models import (Favorites, Ingredient, IngredientForRecipe, Recipe,
+from food.models import (Favorite, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
 from rest_framework import serializers
 from services import favorites as fav
 from services import follow as fol
+from services import ingredient as ingr
+from services import model as m
 from services import recipe as rec
 from services import shopping_cart as sc
-from services import ingredient as ingr
 from services import tag as tg
-from services import model as m
 from users.models import User
 
 
@@ -89,7 +89,7 @@ class FavoriteSerializer(ShortRecipeSerializer):
 
     def validate(self, attrs):
         """Валидация полей для добавления в избранные."""
-        return super()._validate(attrs=attrs, model=Favorites)
+        return super()._validate(attrs=attrs, model=Favorite)
 
 
 class CustomUserSerializer(UserSerializer):

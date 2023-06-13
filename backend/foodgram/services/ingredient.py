@@ -1,6 +1,6 @@
-from food.models import IngredientForRecipe, Ingredient, Recipe
-from users.models import User
 from django.db.models import Sum
+from food.models import Ingredient, IngredientForRecipe, Recipe
+from users.models import User
 
 
 def get_all_ingredients() -> Ingredient:

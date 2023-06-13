@@ -1,10 +1,9 @@
-import django_filters
-from django_filters import filters
+from django_filters import FilterSet, filters
 from food.models import Ingredient, Recipe
 from services import tag
 
 
-class IngredientFilter(django_filters.FilterSet):
+class IngredientFilter(FilterSet):
     """Фильтер ингредиентов."""
     name = filters.CharFilter(lookup_expr='startswith')
 
@@ -13,7 +12,7 @@ class IngredientFilter(django_filters.FilterSet):
         fields = ['name']
 
 
-class RecipeFilter(django_filters.FilterSet):
+class RecipeFilter(FilterSet):
     """Фильтер рецептов."""
     is_favorited = filters.BooleanFilter(method='filter_is_favorited')
     is_in_shopping_cart = filters.BooleanFilter(

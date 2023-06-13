@@ -4,7 +4,7 @@ import tempfile
 from api.tests.service import StandartTest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
-from food.models import Favorites, Recipe
+from food.models import Favorite, Recipe
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
 from users.models import User
@@ -65,11 +65,11 @@ class FavoritesTest(StandartTest):
         """
         url = reverse("routers:recipes-favorite", args=[1])
 
-        self.if_is_unathorized_post(url=url, model=Favorites)
-        self.success_create_test(url=url, model=Favorites)
-        self.dublicate_create_test(url=url, model=Favorites)
-        self.success_delete_test(url=url, model=Favorites)
-        self.delete_non_saved_object_test(url=url, model=Favorites)
+        self.if_is_unathorized_post(url=url, model=Favorite)
+        self.success_create_test(url=url, model=Favorite)
+        self.dublicate_create_test(url=url, model=Favorite)
+        self.success_delete_test(url=url, model=Favorite)
+        self.delete_non_saved_object_test(url=url, model=Favorite)
 
     def _assert_serializer_is_correct(self, data):
         """Проверяет, что у эндпойнта корректно настроен serializer."""
