@@ -1,7 +1,4 @@
-import base64
-
 from django.contrib.auth import authenticate
-from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +14,7 @@ from services import recipe as rec
 from services import shopping_cart as sc
 from services import tag as tg
 from users.models import User
+from .fields import Base64ImageField
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -40,17 +38,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ("id", "name", "measurement_unit")
-
-
-class Base64ImageField(serializers.ImageField):
-    """Перевод картинки из base64 в нормальный формат."""
-    def to_internal_value(self, data):
-        if isinstance(data, str) and data.startswith('data:image'):
-            format, imgstr = data.split(';base64,')
-            ext = format.split('/')[-1]
-            data = ContentFile(base64.b64decode(imgstr), name='temp.' + ext)
-
-        return super().to_internal_value(data)
 
 
 class ShortRecipeSerializer(serializers.ModelSerializer):
@@ -137,7 +124,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 'ingredients': 'Необходим хотя бы один ингредиент.'})
         ingredients_list = []
         for ingredient in value:
-            if not ingr.is_exists(id=ingredient['id']):
+            if not ingr.is_exists(ingredient['id']):
                 raise serializers.ValidationError({
                     'ingredients': 'Данного ингредиента не существует.'})
 
@@ -160,10 +147,7 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create_ingredients_amounts(self, ingredients, recipe):
         """Получение поля ингредиента."""
-        for ingredient in ingredients:
-            ingr.create_ingredient_for_recipe(
-                ingredient, recipe, ingredient['amount']
-            )
+        ingr.bulk_create_ingredients_amount(ingredients, recipe)
 
     @transaction.atomic
     def create(self, validated_data):
@@ -185,7 +169,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
         instance.ingredients.clear()
         self.create_ingredients_amounts(recipe=instance,
                                         ingredients=ingredients)
-        instance.save()
         return instance
 
     def to_representation(self, instance):

@@ -67,7 +67,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == "POST":
             return self._create_to(ShoppingCart, recipe, request)
-        if request.method == "DELETE":
+        else:
             return self._delete_from(ShoppingCart, recipe, request)
 
     @action(detail=True,
@@ -78,7 +78,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         if request.method == "POST":
             return self._create_to(Favorite, recipe, request)
-        if request.method == "DELETE":
+        else:
             return self._delete_from(Favorite, recipe, request)
 
     @action(detail=False,
@@ -95,7 +95,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             shopping_list += (
                 f'- {ingredient["ingredient__name"]} '
                 f'({ingredient["ingredient__measurement_unit"]})'
-                f' - {ingredient["amount"]}'
+                f' - {ingredient["total_amount"]}'
             ) + '\n'
 
         name = 'shop_list.txt'

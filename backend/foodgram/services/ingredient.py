@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from food.models import Ingredient, IngredientForRecipe, Recipe
+from food.models import Ingredient, IngredientForRecipe
 from users.models import User
 
 
@@ -15,19 +15,18 @@ def get_sum_amount(user: User):
         ).values(
             'ingredient__name',
             'ingredient__measurement_unit'
-        ).annotate(amount=Sum('amount'))
+        ).annotate(total_amount=Sum('amount'))
     return amount
 
 
-def create_ingredient_for_recipe(ingredient,
-                                 recipe: Recipe,
-                                 amount: int):
-    """Создает запись в промежуточной БД."""
-    return IngredientForRecipe.objects.create(
-                ingredient=Ingredient.objects.get(id=ingredient['id']),
-                recipe=recipe,
-                amount=amount
-            )
+def bulk_create_ingredients_amount(ingredients, recipe):
+    IngredientForRecipe.objects.bulk_create([
+        IngredientForRecipe(ingredient=Ingredient.objects.get(
+            id=ingredient['id']),
+                            recipe=recipe,
+                            amount=ingredient['amount']
+                            ) for ingredient in ingredients]
+    )
 
 
 def is_exists(id: int) -> bool:
