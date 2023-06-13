@@ -124,10 +124,6 @@ class RecipeCreateUpdateSerializer(serializers.ModelSerializer):
                 'ingredients': 'Необходим хотя бы один ингредиент.'})
         ingredients_list = []
         for ingredient in value:
-            if not ingr.is_exists(ingredient['id']):
-                raise serializers.ValidationError({
-                    'ingredients': 'Данного ингредиента не существует.'})
-
             if ingredient['id'] in ingredients_list:
                 raise serializers.ValidationError({
                     'ingredients': 'Ингредиенты не могут повторяться.'})
