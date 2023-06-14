@@ -55,10 +55,9 @@ class CustomUserViewSet(UserViewSet):
             follow.create_follow(user, author)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-        else:
-            serializer = self._validate_data(author, request)
-            follow.delete_follow(user, author)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = self._validate_data(author, request)
+        follow.delete_follow(user, author)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @action(detail=False,
             permission_classes=[IsAuthenticated])

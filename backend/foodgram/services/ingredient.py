@@ -21,8 +21,7 @@ def get_sum_amount(user: User):
 
 def bulk_create_ingredients_amount(ingredients, recipe):
     IngredientForRecipe.objects.bulk_create([
-        IngredientForRecipe(ingredient=Ingredient.objects.get(
-            id=ingredient['id']),
+        IngredientForRecipe(ingredient_id=ingredient['id'],
                             recipe=recipe,
                             amount=ingredient['amount']
                             ) for ingredient in ingredients]
