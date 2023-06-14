@@ -1,8 +1,9 @@
-from food.models import Ingredient
 from rest_framework import status
 from rest_framework.exceptions import NotFound
 from rest_framework.reverse import reverse
 from rest_framework.test import APITestCase
+
+from food.models import Ingredient
 
 FIRST_TAG = 0
 FIRST_ENDPOINT_ERROR = 0

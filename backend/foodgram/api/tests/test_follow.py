@@ -1,13 +1,14 @@
 import shutil
 import tempfile
 
-from api.tests.service import StandartTest
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
-from food.models import Recipe
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.reverse import reverse
+
+from api.tests.service import StandartTest
+from food.models import Recipe
 from users.models import Follow, User
 
 MEDIA_ROOT = tempfile.mkdtemp()

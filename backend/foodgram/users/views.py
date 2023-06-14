@@ -1,6 +1,3 @@
-from api.pagination import CustomPagination
-from api.serializers import (CustomAuthTokenEmailSerializer,
-                             CustomUserSerializer, FollowSerializer)
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import status
@@ -11,6 +8,10 @@ from rest_framework.exceptions import NotAuthenticated
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from api.pagination import CustomPagination
+from api.serializers import (CustomAuthTokenEmailSerializer,
+                             CustomUserSerializer, FollowSerializer)
 from services import follow, users
 from users.models import User
 

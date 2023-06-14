@@ -3,9 +3,10 @@ from django.db import transaction
 from django.db.models import F
 from django.utils.translation import gettext_lazy as _
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from rest_framework import serializers
+
 from food.models import (Favorite, Ingredient, IngredientForRecipe, Recipe,
                          ShoppingCart, Tag)
-from rest_framework import serializers
 from services import favorites as fav
 from services import follow as fol
 from services import ingredient as ingr

@@ -1,7 +1,8 @@
-from api.views import IngridientViewSet, RecipeViewSet, TagViewSet
 from django.urls import include, path
 from djoser.views import UserViewSet
 from rest_framework.routers import DefaultRouter
+
+from api.views import IngridientViewSet, RecipeViewSet, TagViewSet
 from users.views import AuthToken, CustomUserViewSet, LogoutToken
 
 router_v1 = DefaultRouter()
