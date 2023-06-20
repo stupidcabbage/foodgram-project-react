@@ -9,7 +9,9 @@ services:
       - ./.env
 
   web:
-    image: stupidcabbage/foodgram:v1
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
     restart: always
     volumes:
       - static_value:/app/static/
