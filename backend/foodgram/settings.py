@@ -10,8 +10,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY',
                        default='DEFAULT_VALUE')
 
-DEBUG = os.getenv('DEBUG_STATUS',
-                  default=False)
+DEBUG = os.getenv(False)
 
 ALLOWED_HOSTS = ['*']
 
@@ -133,4 +132,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.User'
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost']
+CSRF_TRUSTED_ORIGINS = ['http://localhost',
+                        'http://158.160.9.20']
