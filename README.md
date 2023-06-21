@@ -37,7 +37,7 @@ sudo docker compose exec web python manage.py createsuperuser
 sudo docker compose exec web python manage.py collectstatic --noinput
 ```
 
-- Наполнить базу данных содержимым из файла data/ingredients.json:
+- Наполнить базу данных содержимым из файла data/ingredients.csv:
 ```
 sudo docker compose exec web python manage.py upload_data
 ```
